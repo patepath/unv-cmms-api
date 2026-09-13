@@ -4,7 +4,7 @@ go 1.22
 
 require github.com/gin-gonic/gin v1.10.0
 
-require gorm.io/gorm v1.30.0
+require gorm.io/gorm v1.31.2
 
 require (
 	filippo.io/edwards25519 v1.1.0 // indirect

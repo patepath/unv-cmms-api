@@ -11,7 +11,7 @@ type BuildingHandler struct {
 
 func (h *BuildingHandler) GetBuildings(c *gin.Context) {
 	var buildings []Building
-	if err := h.DB.Find(&buildings).Error; err != nil {
+	if err := h.DB.Order("code").Find(&buildings).Error; err != nil {
 		c.JSON(500, gin.H{"error": err.Error()})
 		return
 	}

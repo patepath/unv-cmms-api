@@ -199,11 +199,20 @@ func main() {
 		}
 	}
 
+	if os.Getenv("production") == "true" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
 	router := gin.Default()
 	router.Use(CORSMiddleware())
 	router.Use(gin.Logger())
 	router.Use(gin.Recovery())
-	router.SetTrustedProxies(nil)
+
+	if os.Getenv("production") == "true" {
+		router.SetTrustedProxies([]string{"127.0.0.1", "::1"})
+	} else {
+		router.SetTrustedProxies(nil)
+	}
 
 	router.GET("/health", func(context *gin.Context) {
 		context.JSON(http.StatusOK, gin.H{
@@ -245,6 +254,10 @@ func main() {
 	brandGroup := router.Group("/" + version + "/brand")
 	{
 		brandGroup.GET("/", brandHandler.GetBrands)
+		brandGroup.GET("/:id", brandHandler.GetBrandByID)
+		brandGroup.POST("/", brandHandler.CreateBrand)
+		brandGroup.PUT("/:id", brandHandler.UpdateBrand)
+		//brandGroup.DELETE("/:id", brandHandler.DeleteBrand)
 	}
 
 	assetHandler := &AssetHandler{DB: db}

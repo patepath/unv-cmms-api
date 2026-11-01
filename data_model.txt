@@ -1,0 +1,178 @@
+// 1. Building Model (ตารางอาคาร / สถานที่)
+type Building struct {
+	BuildingCode string      `gorm:"primaryKey;size:20;column:building_code" json:"building_code"`
+	BuildingName string      `gorm:"size:255;not null;column:building_name" json:"building_name"`
+	CreatedAt    time.Time   `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	Equipments   []Equipment `gorm:"foreignKey:BuildingCode;references:BuildingCode" json:"equipments,omitempty"`
+}
+
+func (Building) TableName() string {
+	return "buildings"
+}
+
+// 2. EquipmentCategory Model (ตารางหมวดหมู่/ประเภทอุปกรณ์)
+type EquipmentCategory struct {
+	CategoryID    string      `gorm:"primaryKey;size:30;column:category_id" json:"category_id"`
+	CategoryName  string      `gorm:"size:100;not null;column:category_name" json:"category_name"`
+	CategoryGroup string      `gorm:"size:50;column:category_group" json:"category_group"`
+	Equipments    []Equipment `gorm:"foreignKey:CategoryID;references:CategoryID" json:"equipments,omitempty"`
+}
+
+func (EquipmentCategory) TableName() string {
+	return "equipment_categories"
+}
+
+// 3. Equipment Model (ตารางอุปกรณ์หลัก)
+type Equipment struct {
+	EquipmentID          string   `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	CategoryID           string   `gorm:"size:30;not null;index;column:category_id" json:"category_id"`
+	BuildingCode         *string  `gorm:"size:20;index;column:building_code" json:"building_code,omitempty"`
+	InstallationLocation string   `gorm:"size:255;column:installation_location" json:"installation_location"`
+	Floor                string   `gorm:"size:20;column:floor" json:"floor"`
+	AssetNo              string   `gorm:"size:100;column:asset_no" json:"asset_no"`
+	AssetTag             string   `gorm:"size:100;column:asset_tag" json:"asset_tag"`
+	UnitNumber           string   `gorm:"size:50;column:unit_number" json:"unit_number"`
+	Brand                string   `gorm:"size:100;column:brand" json:"brand"`
+	Model                string   `gorm:"size:100;column:model" json:"model"`
+	Status               string   `gorm:"size:50;default:'ACTIVE';column:status" json:"status"`
+	CreatedAt            time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	UpdatedAt            time.Time `gorm:"autoUpdateTime;column:updated_at" json:"updated_at"`
+
+	// Associations (Belongs To)
+	Category EquipmentCategory `gorm:"foreignKey:CategoryID;constraint:OnUpdate:CASCADE,OnDelete:RESTRICT;" json:"category,omitempty"`
+	Building *Building         `gorm:"foreignKey:BuildingCode;constraint:OnUpdate:CASCADE,OnDelete:SET NULL;" json:"building,omitempty"`
+
+	// Associations (Has One Specialized Specs)
+	SpecTransformer     *SpecTransformer     `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_transformer,omitempty"`
+	SpecGenerator       *SpecGenerator       `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_generator,omitempty"`
+	SpecElectricalPanel *SpecElectricalPanel `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_electrical_panel,omitempty"`
+	SpecFireAlarm       *SpecFireAlarm       `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_fire_alarm,omitempty"`
+	SpecPump            *SpecPump            `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_pump,omitempty"`
+	SpecPaddleWheel     *SpecPaddleWheel     `gorm:"foreignKey:EquipmentID;references:EquipmentID" json:"spec_paddle_wheel,omitempty"`
+}
+
+func (Equipment) TableName() string {
+	return "equipments"
+}
+
+// 4. SpecTransformer Model (สเปกหม้อแปลงไฟฟ้า)
+type SpecTransformer struct {
+	EquipmentID           string `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	Brand                 string `gorm:"size:100;column:brand" json:"brand"`
+	TransformerType       string `gorm:"size:50;column:transformer_type" json:"transformer_type"`
+	RatedCapacityKVA      string `gorm:"size:50;column:rated_capacity_kva" json:"rated_capacity_kva"`
+	UnitOfCapacity        string `gorm:"size:20;default:'kVA';column:unit_of_capacity" json:"unit_of_capacity"`
+	HVProtectionEquipment string `gorm:"size:100;column:hv_protection_equipment" json:"hv_protection_equipment"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecTransformer) TableName() string {
+	return "spec_transformers"
+}
+
+// 5. SpecGenerator Model (สเปกเครื่องกำเนิดไฟฟ้า)
+type SpecGenerator struct {
+	EquipmentID      string   `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	EngineBrand      string   `gorm:"size:100;column:engine_brand" json:"engine_brand"`
+	EngineModel      string   `gorm:"size:100;column:engine_model" json:"engine_model"`
+	EnginePowerHP    *float64 `gorm:"type:numeric(10,2);column:engine_power_hp" json:"engine_power_hp,omitempty"`
+	EnginePowerKW    *float64 `gorm:"type:numeric(10,2);column:engine_power_kw" json:"engine_power_kw,omitempty"`
+	AlternatorBrand  string   `gorm:"size:100;column:alternator_brand" json:"alternator_brand"`
+	AlternatorModel  string   `gorm:"size:100;column:alternator_model" json:"alternator_model"`
+	BaseRatingKVA    *float64 `gorm:"type:numeric(10,2);column:base_rating_kva" json:"base_rating_kva,omitempty"`
+	BaseRatingKW     *float64 `gorm:"type:numeric(10,2);column:base_rating_kw" json:"base_rating_kw,omitempty"`
+	FuelTankCapacity *float64 `gorm:"type:numeric(10,2);column:fuel_tank_capacity" json:"fuel_tank_capacity,omitempty"`
+	FuelTankUnit     string   `gorm:"size:20;default:'Litre';column:fuel_tank_unit" json:"fuel_tank_unit"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecGenerator) TableName() string {
+	return "spec_generators"
+}
+
+// 6. SpecElectricalPanel Model (สเปกตู้ไฟฟ้าและเบรกเกอร์)
+type SpecElectricalPanel struct {
+	EquipmentID     string   `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	MainType        string   `gorm:"size:100;column:main_type" json:"main_type"`
+	Brand           string   `gorm:"size:100;column:brand" json:"brand"`
+	RateCurrent     *float64 `gorm:"type:numeric(10,2);column:rate_current" json:"rate_current,omitempty"`
+	UnitRateCurrent string   `gorm:"size:20;default:'A';column:unit_rate_current" json:"unit_rate_current"`
+	InIu            string   `gorm:"size:50;column:in_iu" json:"in_iu"`
+	Ue              string   `gorm:"size:50;column:ue" json:"ue"`
+	Icu             string   `gorm:"size:50;column:icu" json:"icu"`
+	Ics             string   `gorm:"size:50;column:ics" json:"ics"`
+	Icw             string   `gorm:"size:50;column:icw" json:"icw"`
+	Uimp            string   `gorm:"size:50;column:uimp" json:"uimp"`
+	Hz              string   `gorm:"size:20;default:'50Hz';column:hz" json:"hz"`
+	CatType         string   `gorm:"size:50;column:cat_type" json:"cat_type"`
+	LSetting        string   `gorm:"size:50;column:l_setting" json:"l_setting"`
+	TimeOfL         string   `gorm:"size:50;column:time_of_l" json:"time_of_l"`
+	SSetting        string   `gorm:"size:50;column:s_setting" json:"s_setting"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecElectricalPanel) TableName() string {
+	return "spec_electrical_panels"
+}
+
+// 7. SpecFireAlarm Model (สเปกระบบแจ้งเหตุเพลิงไหม้ & ชะลอน้ำ)
+type SpecFireAlarm struct {
+	EquipmentID      string `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	SystemType       string `gorm:"size:50;column:system_type" json:"system_type"`
+	FcpBrand         string `gorm:"size:100;column:fcp_brand" json:"fcp_brand"`
+	FcpModel         string `gorm:"size:100;column:fcp_model" json:"fcp_model"`
+	CabinetCount     *int   `gorm:"column:cabinet_count" json:"cabinet_count,omitempty"`
+	AnnunciatorBrand string `gorm:"size:100;column:annunciator_brand" json:"annunciator_brand"`
+	BatterySpecs     string `gorm:"size:255;column:battery_specs" json:"battery_specs"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecFireAlarm) TableName() string {
+	return "spec_fire_alarms"
+}
+
+// 8. SpecPump Model (สเปกระบบปั๊มน้ำทุกประเภท)
+type SpecPump struct {
+	EquipmentID         string   `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	PumpApplication     string   `gorm:"size:50;column:pump_application" json:"pump_application"`
+	DriveType           string   `gorm:"size:50;column:drive_type" json:"drive_type"`
+	MotorBrand          string   `gorm:"size:100;column:motor_brand" json:"motor_brand"`
+	MotorModel          string   `gorm:"size:100;column:motor_model" json:"motor_model"`
+	PowerRating         *float64 `gorm:"type:numeric(10,2);column:power_rating" json:"power_rating,omitempty"`
+	PowerUnit           string   `gorm:"size:20;column:power_unit" json:"power_unit"`
+	MotorRPM            string   `gorm:"size:50;column:motor_rpm" json:"motor_rpm"`
+	PumpBrand           string   `gorm:"size:100;column:pump_brand" json:"pump_brand"`
+	PumpModel           string   `gorm:"size:100;column:pump_model" json:"pump_model"`
+	FlowRate            string   `gorm:"size:100;column:flow_rate" json:"flow_rate"`
+	FlowRateUnit        string   `gorm:"size:50;column:flow_rate_unit" json:"flow_rate_unit"`
+	PressureTankCapacity string   `gorm:"size:100;column:pressure_tank_capacity" json:"pressure_tank_capacity"`
+	JockeyPumpSpecs     string   `gorm:"size:255;column:jockey_pump_specs" json:"jockey_pump_specs"`
+	BatterySpecs        string   `gorm:"size:100;column:battery_specs" json:"battery_specs"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecPump) TableName() string {
+	return "spec_pumps"
+}
+
+// 9. SpecPaddleWheel Model (สเปกกังหันตีน้ำ)
+type SpecPaddleWheel struct {
+	EquipmentID     string `gorm:"primaryKey;size:50;column:equipment_id" json:"equipment_id"`
+	PowerType       string `gorm:"size:50;column:power_type" json:"power_type"`
+	MotorBrand      string `gorm:"size:100;column:motor_brand" json:"motor_brand"`
+	Model           string `gorm:"size:100;column:model" json:"model"`
+	PowerRating     string `gorm:"size:50;column:power_rating" json:"power_rating"`
+	PowerUnit       string `gorm:"size:20;column:power_unit" json:"power_unit"`
+	RPMEnergySource string `gorm:"size:100;column:rpm_energy_source" json:"rpm_energy_source"`
+
+	Equipment *Equipment `gorm:"foreignKey:EquipmentID;constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+}
+
+func (SpecPaddleWheel) TableName() string {
+	return "spec_paddle_wheels"
+}

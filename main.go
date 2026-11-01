@@ -13,36 +13,14 @@ import (
 	"gorm.io/gorm"
 )
 
-type Asset struct {
-	ID             uint            `gorm:"primaryKey" json:"id"`
-	Code           string          `gorm:"uniqueIndex;not null;size:100" json:"code"`
-	Category       Category        `gorm:"foreignKey:CategoryID" json:"category"`
-	CategoryID     uint            `gorm:"not null" json:"category_id"`
-	Model          string          `gorm:"size:100" json:"model"`
-	BrandName      string          `gorm:"size:100" json:"brand_name"`
-	Location       Location        `gorm:"foreignKey:LocationID" json:"location"`
-	LocationID     uint            `gorm:"not null" json:"location_id"`
-	Area           string          `gorm:"size:255" json:"area"`
-	Floor          string          `gorm:"size:255" json:"floor"`
-	Owner          string          `gorm:"size:100" json:"owner"`
-	Condition      uint            `gorm:"not null" json:"condition"`
-	PurchaseDate   time.Time       `json:"purchase_date"`
-	WarrantyEnd    time.Time       `json:"warranty_end"`
-	LastService    time.Time       `json:"last_service"`
-	NextService    time.Time       `json:"next_service"`
-	CreatedAt      time.Time       `json:"created_at"`
-	UpdatedAt      time.Time       `json:"updated_at"`
-	DeletedAt      gorm.DeletedAt  `gorm:"index" json:"-"`
-	ServiceRecords []ServiceRecord `gorm:"foreignKey:AssetID" json:"service_records,omitempty"`
-}
-
 type Category struct {
-	ID   uint   `gorm:"primaryKey" json:"id"`
-	Name string `gorm:"size:100;not null" json:"name"`
+	ID    uint   `gorm:"primaryKey;autoIncrement" json:"id"`
+	Name  string `gorm:"size:100;not null" json:"name"`
+	Group string `gorm:"size:50;column:group" json:"group"`
 }
 
-type Location struct {
-	ID   uint   `gorm:"primaryKey" json:"id"`
+type Brand struct {
+	ID   uint   `gorm:"primaryKey;autoIncrement" json:"id"`
 	Name string `gorm:"size:255;not null" json:"name"`
 }
 
@@ -56,6 +34,138 @@ type ServiceRecord struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+type Building struct {
+	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	Code      string    `gorm:"size:20;column:code" json:"code"`
+	Name      string    `gorm:"size:255;not null;column:name" json:"name"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+}
+
+type Asset struct {
+	gorm.Model
+	ID uint64 `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
+
+	CategoryID *uint    `gorm:"NULL"`
+	Category   Category `gorm:"foreignKey:CategoryID;" json:"category"`
+
+	BuildingCode string `gorm:"size:50;column:building_code;" json:"building_code"`
+	BuildingName string `gorm:"size:255;column:building_name;" json:"building_name"`
+	Location     string `gorm:"size:255;column:location" json:"location"`
+	Floor        string `gorm:"size:20;column:floor" json:"floor"`
+	AssetNo      string `gorm:"size:100;column:asset_no" json:"asset_no"`
+	AssetTag     string `gorm:"size:100;column:asset_tag" json:"asset_tag"`
+
+	BuildingID *uint    `gorm:"NULL"`
+	Building   Building `gorm:"foreignKey:BuildingID;" json:"building_id"`
+
+	BrandID *uint `gorm:"NULL"`
+	Brand   Brand `gorm:"foreignKey:BrandID;" json:"brand_id"`
+
+	ModelName  string `gorm:"size:100;column:model" json:"model"`
+	UnitNumber string `gorm:"size:50;column:unit_number" json:"unit_number"`
+
+	SpecTransformerID *uint64         `gorm:"NULL"`
+	SpecTransformer   SpecTransformer `gorm:"foreignKey:SpecTransformerID;" json:"spec_transformer_id"`
+
+	SpecGeneratorID *uint64       `gorm:"NULL"`
+	SpecGenerator   SpecGenerator `gorm:"foreignKey:SpecGeneratorID;" json:"spec_generator_id"`
+
+	SpecElectricalPanelID *uint64             `gorm:"NULL"`
+	SpecElectricalPanel   SpecElectricalPanel `gorm:"foreignKey:SpecElectricalPanelID" json:"spec_electrical_panel_id"`
+
+	SpecFireAlarmID *uint64       `gorm:"NULL"`
+	SpecFireAlarm   SpecFireAlarm `gorm:"foreignKey:SpecFireAlarmID" json:"spec_fire_alarm_id"`
+
+	SpecPumpID *uint64  `gorm:"NULL"`
+	SpecPump   SpecPump `gorm:"foreignKey:SpecPumpID;" json:"spec_pump_id"`
+
+	SpecPaddleWheelID *uint64          `gorm:"NULL"`
+	SpecPaddleWheel   *SpecPaddleWheel `gorm:"foreignKey:SpecPaddleWheelID;" json:"spec_paddle_wheel_id"`
+
+	Status    string    `gorm:"size:50;default:'ACTIVE';column:status" json:"status"`
+	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
+	UpdatedAt time.Time `gorm:"autoUpdateTime;column:updated_at" json:"updated_at"`
+}
+
+type SpecTransformer struct {
+	ID                    uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	TransformerType       string `gorm:"size:50;column:transformer_type" json:"transformer_type"`
+	RatedCapacityKVA      string `gorm:"size:50;column:rated_capacity_kva" json:"rated_capacity_kva"`
+	UnitOfCapacity        string `gorm:"size:20;default:'kVA';column:unit_of_capacity" json:"unit_of_capacity"`
+	HVProtectionEquipment string `gorm:"size:100;column:hv_protection_equipment" json:"hv_protection_equipment"`
+}
+
+type SpecGenerator struct {
+	ID               uint64   `gorm:"primaryKey;autoIncrement" json:"id"`
+	EngineBrand      string   `gorm:"size:100;column:engine_brand" json:"engine_brand"`
+	EngineModel      string   `gorm:"size:100;column:engine_model" json:"engine_model"`
+	EnginePowerHP    *float64 `gorm:"type:numeric(10,2);column:engine_power_hp" json:"engine_power_hp,omitempty"`
+	EnginePowerKW    *float64 `gorm:"type:numeric(10,2);column:engine_power_kw" json:"engine_power_kw,omitempty"`
+	AlternatorBrand  string   `gorm:"size:100;column:alternator_brand" json:"alternator_brand"`
+	AlternatorModel  string   `gorm:"size:100;column:alternator_model" json:"alternator_model"`
+	BaseRatingKVA    *float64 `gorm:"type:numeric(10,2);column:base_rating_kva" json:"base_rating_kva,omitempty"`
+	BaseRatingKW     *float64 `gorm:"type:numeric(10,2);column:base_rating_kw" json:"base_rating_kw,omitempty"`
+	FuelTankCapacity *float64 `gorm:"type:numeric(10,2);column:fuel_tank_capacity" json:"fuel_tank_capacity,omitempty"`
+	FuelTankUnit     string   `gorm:"size:20;default:'Litre';column:fuel_tank_unit" json:"fuel_tank_unit"`
+}
+
+type SpecElectricalPanel struct {
+	ID              uint64   `gorm:"primaryKey;autoIncrement" json:"id"`
+	MainType        string   `gorm:"size:100;column:main_type" json:"main_type"`
+	Brand           string   `gorm:"size:100;column:brand" json:"brand"`
+	RateCurrent     *float64 `gorm:"type:numeric(10,2);column:rate_current" json:"rate_current,omitempty"`
+	UnitRateCurrent string   `gorm:"size:20;default:'A';column:unit_rate_current" json:"unit_rate_current"`
+	InIu            string   `gorm:"size:50;column:in_iu" json:"in_iu"`
+	Ue              string   `gorm:"size:50;column:ue" json:"ue"`
+	Icu             string   `gorm:"size:50;column:icu" json:"icu"`
+	Ics             string   `gorm:"size:50;column:ics" json:"ics"`
+	Icw             string   `gorm:"size:50;column:icw" json:"icw"`
+	Uimp            string   `gorm:"size:50;column:uimp" json:"uimp"`
+	Hz              string   `gorm:"size:20;default:'50Hz';column:hz" json:"hz"`
+	CatType         string   `gorm:"size:50;column:cat_type" json:"cat_type"`
+	LSetting        string   `gorm:"size:50;column:l_setting" json:"l_setting"`
+	TimeOfL         string   `gorm:"size:50;column:time_of_l" json:"time_of_l"`
+	Setting         string   `gorm:"size:50;column:s_setting" json:"s_setting"`
+}
+
+type SpecFireAlarm struct {
+	ID               uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	SystemType       string `gorm:"size:50;column:system_type" json:"system_type"`
+	FcpBrand         string `gorm:"size:100;column:fcp_brand" json:"fcp_brand"`
+	FcpModel         string `gorm:"size:100;column:fcp_model" json:"fcp_model"`
+	CabinetCount     *int   `gorm:"column:cabinet_count" json:"cabinet_count,omitempty"`
+	AnnunciatorBrand string `gorm:"size:100;column:annunciator_brand" json:"annunciator_brand"`
+	BatterySpecs     string `gorm:"size:255;column:battery_specs" json:"battery_specs"`
+}
+
+type SpecPump struct {
+	ID                   uint     `gorm:"primaryKey;column:id" json:"id"`
+	PumpApplication      string   `gorm:"size:50;column:pump_application" json:"pump_application"`
+	DriveType            string   `gorm:"size:50;column:drive_type" json:"drive_type"`
+	MotorBrand           string   `gorm:"size:100;column:motor_brand" json:"motor_brand"`
+	MotorModel           string   `gorm:"size:100;column:motor_model" json:"motor_model"`
+	PowerRating          *float64 `gorm:"type:numeric(10,2);column:power_rating" json:"power_rating,omitempty"`
+	PowerUnit            string   `gorm:"size:20;column:power_unit" json:"power_unit"`
+	MotorRPM             string   `gorm:"size:50;column:motor_rpm" json:"motor_rpm"`
+	PumpBrand            string   `gorm:"size:100;column:pump_brand" json:"pump_brand"`
+	PumpModel            string   `gorm:"size:100;column:pump_model" json:"pump_model"`
+	FlowRate             string   `gorm:"size:100;column:flow_rate" json:"flow_rate"`
+	FlowRateUnit         string   `gorm:"size:50;column:flow_rate_unit" json:"flow_rate_unit"`
+	PressureTankCapacity string   `gorm:"size:100;column:pressure_tank_capacity" json:"pressure_tank_capacity"`
+	JockeyPumpSpecs      string   `gorm:"size:255;column:jockey_pump_specs" json:"jockey_pump_specs"`
+	BatterySpecs         string   `gorm:"size:100;column:battery_specs" json:"battery_specs"`
+}
+
+type SpecPaddleWheel struct {
+	ID              uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
+	PowerType       string `gorm:"size:50;column:power_type" json:"power_type"`
+	MotorBrand      string `gorm:"size:100;column:motor_brand" json:"motor_brand"`
+	ModelName       string `gorm:"size:100;column:model" json:"model"`
+	PowerRating     string `gorm:"size:50;column:power_rating" json:"power_rating"`
+	PowerUnit       string `gorm:"size:20;column:power_unit" json:"power_unit"`
+	RPMEnergySource string `gorm:"size:100;column:rpm_energy_source" json:"rpm_energy_source"`
+}
+
 func main() {
 	var version = "api/v1"
 	fmt.Println("Starting...")
@@ -66,14 +176,27 @@ func main() {
 	}
 
 	dsn := os.Getenv("dsn")
-
 	var db *gorm.DB
 
 	if db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{}); err != nil {
 		log.Panic(err)
 
 	} else {
-		db.AutoMigrate(&Asset{}, &ServiceRecord{}, &Category{}, &Location{})
+		if err = db.AutoMigrate(
+			&ServiceRecord{},
+			&Category{},
+			&Brand{},
+			&Building{},
+			&Asset{},
+			&SpecTransformer{},
+			&SpecGenerator{},
+			&SpecElectricalPanel{},
+			&SpecFireAlarm{},
+			&SpecPump{},
+			&SpecPaddleWheel{},
+		); err != nil {
+			log.Panic(err)
+		}
 	}
 
 	router := gin.Default()
@@ -88,16 +211,6 @@ func main() {
 		})
 	})
 
-	assetHandler := &AssetHandler{DB: db}
-	assetGroup := router.Group("/" + version + "/asset")
-	{
-		assetGroup.GET("/", assetHandler.GetAssets)
-		assetGroup.GET("/:id", assetHandler.GetAsset)
-		assetGroup.POST("/", assetHandler.CreateAsset)
-		assetGroup.PUT("/:id", assetHandler.UpdateAsset)
-		//		assetGroup.DELETE("/:id", assetHandler.DeleteAsset)
-	}
-
 	serviceRecordHandler := &ServiceRecordHandler{DB: db}
 	serviceRecordGroup := router.Group("/" + version + "/serviceRecord")
 	{
@@ -106,16 +219,6 @@ func main() {
 		serviceRecordGroup.POST("/", serviceRecordHandler.CreateServiceRecord)
 		serviceRecordGroup.PUT("/:id", serviceRecordHandler.UpdateServiceRecord)
 		//		serviceRecordGroup.DELETE("/:id", serviceRecordHandler.DeleteServiceRecord)
-	}
-
-	locationHandler := &LocationHandler{DB: db}
-	locationGroup := router.Group("/" + version + "/location")
-	{
-		locationGroup.GET("/", locationHandler.GetLocations)
-		locationGroup.GET("/:id", locationHandler.GetLocationByID)
-		locationGroup.POST("/", locationHandler.CreateLocation)
-		locationGroup.PUT("/:id", locationHandler.UpdateLocation)
-		// locationGroup.DELETE("/:id", locationHandler.DeleteLocation)
 	}
 
 	categoryHandler := &CategoryHandler{DB: db}
@@ -128,10 +231,97 @@ func main() {
 		// categoryGroup.DELETE("/:id", categoryHandler.DeleteCategory)
 	}
 
+	buildingHandler := &BuildingHandler{DB: db}
+	buildingGroup := router.Group("/" + version + "/building")
+	{
+		buildingGroup.GET("/", buildingHandler.GetBuildings)
+		buildingGroup.GET("/:building_code", buildingHandler.GetBuilding)
+		buildingGroup.POST("/", buildingHandler.CreateBuilding)
+		buildingGroup.PUT("/:building_code", buildingHandler.UpdateBuilding)
+		//buildingGroup.DELETE("/:building_code", buildingHandler.DeleteBuilding)
+	}
+
+	brandHandler := &BrandHandler{DB: db}
+	brandGroup := router.Group("/" + version + "/brand")
+	{
+		brandGroup.GET("/", brandHandler.GetBrands)
+	}
+
+	assetHandler := &AssetHandler{DB: db}
+	assetGroup := router.Group("/" + version + "/asset")
+	{
+		assetGroup.GET("/", assetHandler.GetAssets)
+		assetGroup.GET("/:asset_id", assetHandler.GetAsset)
+		assetGroup.POST("/", assetHandler.CreateAsset)
+		assetGroup.PUT("/:asset_id", assetHandler.UpdateAsset)
+		// assetGroup.DELETE("/:asset_id", assetHandler.DeleteAsset)
+	}
+
+	specTransformerHandler := &SpecTransformerHandler{DB: db}
+	specTransformerGroup := router.Group("/" + version + "/specTransformer")
+	{
+		specTransformerGroup.GET("/", specTransformerHandler.GetSpecTransformers)
+		specTransformerGroup.GET("/:spec_transformer_id", specTransformerHandler.GetSpecTransformer)
+		specTransformerGroup.POST("/", specTransformerHandler.CreateSpecTransformer)
+		specTransformerGroup.PUT("/:spec_transformer_id", specTransformerHandler.UpdateSpecTransformer)
+		// specTransformerGroup.DELETE("/:spec_transformer_id", specTransformerHandler.DeleteSpecTransformer)
+	}
+
+	specGeneratorHandler := &SpecGeneratorHandler{DB: db}
+	specGeneratorGroup := router.Group("/" + version + "/specGenerator")
+	{
+		specGeneratorGroup.GET("/", specGeneratorHandler.GetSpecGenerators)
+		specGeneratorGroup.GET("/:spec_generator_id", specGeneratorHandler.GetSpecGenerator)
+		specGeneratorGroup.POST("/", specGeneratorHandler.CreateSpecGenerator)
+		specGeneratorGroup.PUT("/:spec_generator_id", specGeneratorHandler.UpdateSpecGenerator)
+		// specGeneratorGroup.DELETE("/:spec_generator_id", specGeneratorHandler.DeleteSpecGenerator)
+	}
+
+	specElectricalPanelHandler := &SpecElectricalPanelHandler{DB: db}
+	specElectricalPanelGroup := router.Group("/" + version + "/specElectricalPanel")
+	{
+		specElectricalPanelGroup.GET("/", specElectricalPanelHandler.GetSpecElectricalPanels)
+		specElectricalPanelGroup.GET("/:spec_electrical_panel_id", specElectricalPanelHandler.GetSpecElectricalPanel)
+		specElectricalPanelGroup.POST("/", specElectricalPanelHandler.CreateSpecElectricalPanel)
+		specElectricalPanelGroup.PUT("/:spec_electrical_panel_id", specElectricalPanelHandler.UpdateSpecElectricalPanel)
+		// specElectricalPanelGroup.DELETE("/:spec_electrical_panel_id", specElectricalPanelHandler.DeleteSpecElectricalPanel)
+	}
+
+	specFireAlarmHandler := &SpecFireAlarmHandler{DB: db}
+	specFireAlarmGroup := router.Group("/" + version + "/specFireAlarm")
+	{
+		specFireAlarmGroup.GET("/", specFireAlarmHandler.GetSpecFireAlarms)
+		specFireAlarmGroup.GET("/:spec_fire_alarm_id", specFireAlarmHandler.GetSpecFireAlarm)
+		specFireAlarmGroup.POST("/", specFireAlarmHandler.CreateSpecFireAlarm)
+		specFireAlarmGroup.PUT("/:spec_fire_alarm_id", specFireAlarmHandler.UpdateSpecFireAlarm)
+		// specFireAlarmGroup.DELETE("/:spec_fire_alarm_id", specFireAlarmHandler.DeleteSpecFireAlarm)
+	}
+
+	specPumpHandler := &SpecPumpHandler{DB: db}
+	specPumpGroup := router.Group("/" + version + "/specPump")
+	{
+		specPumpGroup.GET("/", specPumpHandler.GetSpecPumps)
+		specPumpGroup.GET("/:spec_pump_id", specPumpHandler.GetSpecPump)
+		specPumpGroup.POST("/", specPumpHandler.CreateSpecPump)
+		specPumpGroup.PUT("/:spec_pump_id", specPumpHandler.UpdateSpecPump)
+		// specPumpGroup.DELETE("/:spec_pump_id", specPumpHandler.DeleteSpecPump)
+	}
+
+	specPaddleWheelHandler := &SpecPaddleWheelHandler{DB: db}
+	specPaddleWheelGroup := router.Group("/" + version + "/specPaddleWheel")
+	{
+		specPaddleWheelGroup.GET("/", specPaddleWheelHandler.GetSpecPaddleWheels)
+		specPaddleWheelGroup.GET("/:spec_paddle_wheel_id", specPaddleWheelHandler.GetSpecPaddleWheel)
+		specPaddleWheelGroup.POST("/", specPaddleWheelHandler.CreateSpecPaddleWheel)
+		specPaddleWheelGroup.PUT("/:spec_paddle_wheel_id", specPaddleWheelHandler.UpdateSpecPaddleWheel)
+		// specPaddleWheelGroup.DELETE("/:spec_paddle_wheel_id", specPaddleWheelHandler.DeleteSpecPaddleWheel)
+	}
+
 	if os.Getenv("production") == "true" {
-		router.RunTLS(os.Getenv("api_host"), "/etc/nginx/ssl/cloudasprompt_com.crt", "/etc/nginx/ssl/cloudasprompt_com.key") // listen and serve on
+		router.Run("127.0.0.1:8080") // listen and serve on
+
 	} else {
-		router.Run(os.Getenv("api_host"))
+		router.Run("localhost:8080") // listen and serve on
 	}
 }
 

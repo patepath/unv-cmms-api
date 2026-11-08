@@ -45,42 +45,40 @@ type Asset struct {
 	gorm.Model
 	ID uint64 `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
 
-	CategoryID *uint    `gorm:"NULL"`
+	CategoryID *uint    `gorm:"NULL" json:"category_id"`
 	Category   Category `gorm:"foreignKey:CategoryID;" json:"category"`
 
-	BuildingCode string `gorm:"size:50;column:building_code;" json:"building_code"`
-	BuildingName string `gorm:"size:255;column:building_name;" json:"building_name"`
-	Location     string `gorm:"size:255;column:location" json:"location"`
-	Floor        string `gorm:"size:20;column:floor" json:"floor"`
-	AssetNo      string `gorm:"size:100;column:asset_no" json:"asset_no"`
-	AssetTag     string `gorm:"size:100;column:asset_tag" json:"asset_tag"`
+	Location string `gorm:"size:255;column:location" json:"location"`
+	Floor    string `gorm:"size:20;column:floor" json:"floor"`
+	AssetNo  string `gorm:"size:100;column:asset_no" json:"asset_no"`
+	AssetTag string `gorm:"size:100;column:asset_tag" json:"asset_tag"`
 
-	BuildingID *uint    `gorm:"NULL"`
-	Building   Building `gorm:"foreignKey:BuildingID;" json:"building_id"`
+	Buildings   []Building `gorm:"many2many:asset_buildings;" json:"buildings"`
+	BuildingIDs []uint     `gorm:"-" json:"building_ids,omitempty"`
 
-	BrandID *uint `gorm:"NULL"`
-	Brand   Brand `gorm:"foreignKey:BrandID;" json:"brand_id"`
+	BrandID *uint `gorm:"NULL" json:"brand_id"`
+	Brand   Brand `gorm:"foreignKey:BrandID;" json:"brand"`
 
 	ModelName  string `gorm:"size:100;column:model" json:"model"`
 	UnitNumber string `gorm:"size:50;column:unit_number" json:"unit_number"`
 
-	SpecTransformerID *uint64         `gorm:"NULL"`
-	SpecTransformer   SpecTransformer `gorm:"foreignKey:SpecTransformerID;" json:"spec_transformer_id"`
+	SpecTransformerID *uint64         `gorm:"NULL" json:"spec_transformer_id"`
+	SpecTransformer   SpecTransformer `gorm:"foreignKey:SpecTransformerID;" json:"spec_transformer"`
 
-	SpecGeneratorID *uint64       `gorm:"NULL"`
-	SpecGenerator   SpecGenerator `gorm:"foreignKey:SpecGeneratorID;" json:"spec_generator_id"`
+	SpecGeneratorID *uint64       `gorm:"NULL" json:"spec_generator_id"`
+	SpecGenerator   SpecGenerator `gorm:"foreignKey:SpecGeneratorID;" json:"spec_generator"`
 
-	SpecElectricalPanelID *uint64             `gorm:"NULL"`
-	SpecElectricalPanel   SpecElectricalPanel `gorm:"foreignKey:SpecElectricalPanelID" json:"spec_electrical_panel_id"`
+	SpecElectricalPanelID *uint64             `gorm:"NULL" json:"spec_electrical_panel_id"`
+	SpecElectricalPanel   SpecElectricalPanel `gorm:"foreignKey:SpecElectricalPanelID" json:"spec_electrical_panel"`
 
-	SpecFireAlarmID *uint64       `gorm:"NULL"`
-	SpecFireAlarm   SpecFireAlarm `gorm:"foreignKey:SpecFireAlarmID" json:"spec_fire_alarm_id"`
+	SpecFireAlarmID *uint64       `gorm:"NULL" json:"spec_fire_alarm_id"`
+	SpecFireAlarm   SpecFireAlarm `gorm:"foreignKey:SpecFireAlarmID" json:"spec_fire_alarm"`
 
-	SpecPumpID *uint64  `gorm:"NULL"`
-	SpecPump   SpecPump `gorm:"foreignKey:SpecPumpID;" json:"spec_pump_id"`
+	SpecPumpID *uint64  `gorm:"NULL" json:"spec_pump_id"`
+	SpecPump   SpecPump `gorm:"foreignKey:SpecPumpID;" json:"spec_pump"`
 
-	SpecPaddleWheelID *uint64          `gorm:"NULL"`
-	SpecPaddleWheel   *SpecPaddleWheel `gorm:"foreignKey:SpecPaddleWheelID;" json:"spec_paddle_wheel_id"`
+	SpecPaddleWheelID *uint64          `gorm:"NULL" json:"spec_paddle_wheel_id"`
+	SpecPaddleWheel   *SpecPaddleWheel `gorm:"foreignKey:SpecPaddleWheelID;" json:"spec_paddle_wheel"`
 
 	Status    string    `gorm:"size:50;default:'ACTIVE';column:status" json:"status"`
 	CreatedAt time.Time `gorm:"autoCreateTime;column:created_at" json:"created_at"`
@@ -264,6 +262,7 @@ func main() {
 	assetGroup := router.Group("/" + version + "/asset")
 	{
 		assetGroup.GET("/", assetHandler.GetAssets)
+		assetGroup.GET("/category/:category_id", assetHandler.GetAssetsByCategory)
 		assetGroup.GET("/:asset_id", assetHandler.GetAsset)
 		assetGroup.POST("/", assetHandler.CreateAsset)
 		assetGroup.PUT("/:asset_id", assetHandler.UpdateAsset)

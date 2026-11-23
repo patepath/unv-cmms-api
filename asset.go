@@ -31,6 +31,32 @@ func (h *AssetHandler) GetAssetsByCategory(c *gin.Context) {
 	c.JSON(200, assets)
 }
 
+func (h *AssetHandler) GetAssetByEquipmentCode(c *gin.Context) {
+	equipmentCode := c.Param("equipment_code")
+	var asset Asset
+
+	if err := h.DB.Preload("SpecTransformer").
+		Preload("SpecGenerator").
+		Preload("SpecElectricalPanel").
+		Preload("SpecFireAlarm").
+		Preload("SpecPump").
+		Preload("SpecPaddleWheel").
+		Preload("Buildings").
+		Preload("Category").
+		Preload("Brand.Category").
+		Where("equipment_code = ?", equipmentCode).
+		First(&asset).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			c.JSON(404, gin.H{"error": "Asset not found"})
+			return
+		}
+		c.JSON(500, gin.H{"error": "Failed to fetch asset by equipment code"})
+		return
+	}
+
+	c.JSON(200, asset)
+}
+
 func (h *AssetHandler) GetAssets(c *gin.Context) {
 	var assets []Asset
 

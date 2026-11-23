@@ -266,6 +266,7 @@ func main() {
 	assetGroup := router.Group("/" + version + "/asset")
 	{
 		assetGroup.GET("/", assetHandler.GetAssets)
+		assetGroup.GET("/code/:equipment_code", assetHandler.GetAssetByEquipmentCode)
 		assetGroup.GET("/category/:category_id", assetHandler.GetAssetsByCategory)
 		assetGroup.GET("/:asset_id", assetHandler.GetAsset)
 		assetGroup.POST("/", assetHandler.CreateAsset)

@@ -45,8 +45,9 @@ type Asset struct {
 	gorm.Model
 	ID uint64 `gorm:"primaryKey;autoIncrement;column:id" json:"id"`
 
-	CategoryID *uint    `gorm:"NULL" json:"category_id"`
-	Category   Category `gorm:"foreignKey:CategoryID;" json:"category"`
+	EquipmentCode string   `gorm:"size:50;column:equipment_code" json:"equipment_code"`
+	CategoryID    *uint    `gorm:"NULL" json:"category_id"`
+	Category      Category `gorm:"foreignKey:CategoryID;" json:"category"`
 
 	Location string `gorm:"size:255;column:location" json:"location"`
 	Floor    string `gorm:"size:20;column:floor" json:"floor"`

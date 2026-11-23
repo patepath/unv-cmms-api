@@ -37,9 +37,12 @@ func (h *AssetHandler) GetAssets(c *gin.Context) {
 	if err := h.DB.Preload("SpecTransformer").
 		Preload("SpecGenerator").
 		Preload("SpecElectricalPanel").
+		Preload("SpecFireAlarm").
 		Preload("SpecPump").
 		Preload("SpecPaddleWheel").
 		Preload("Buildings").
+		Preload("Category").
+		Preload("Brand").
 		Find(&assets).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to fetch assets"})
 		return
@@ -55,9 +58,12 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 	if err := h.DB.Preload("SpecTransformer").
 		Preload("SpecGenerator").
 		Preload("SpecElectricalPanel").
+		Preload("SpecFireAlarm").
 		Preload("SpecPump").
 		Preload("SpecPaddleWheel").
 		Preload("Buildings").
+		Preload("Category").
+		Preload("Brand").
 		First(&asset, "id = ?", assetID).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Asset not found"})
 		return

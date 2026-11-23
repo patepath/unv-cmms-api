@@ -20,8 +20,10 @@ type Category struct {
 }
 
 type Brand struct {
-	ID   uint   `gorm:"primaryKey;autoIncrement" json:"id"`
-	Name string `gorm:"size:255;not null" json:"name"`
+	ID         uint     `gorm:"primaryKey;autoIncrement" json:"id"`
+	CategoryID *uint    `gorm:"NULL" json:"category_id"`
+	Category   Category `gorm:"foreignKey:CategoryID;" json:"category"`
+	Name       string   `gorm:"size:255;not null" json:"name"`
 }
 
 type ServiceRecord struct {
@@ -253,6 +255,7 @@ func main() {
 	brandGroup := router.Group("/" + version + "/brand")
 	{
 		brandGroup.GET("/", brandHandler.GetBrands)
+		brandGroup.GET("/category/:category_id", brandHandler.GetBrandsByCategory)
 		brandGroup.GET("/:id", brandHandler.GetBrandByID)
 		brandGroup.POST("/", brandHandler.CreateBrand)
 		brandGroup.PUT("/:id", brandHandler.UpdateBrand)

@@ -14,7 +14,7 @@ func (h *AssetHandler) GetAssetsByCategory(c *gin.Context) {
 	var assets []Asset
 
 	if err := h.DB.Preload("Category").
-		Preload("Brand").
+		Preload("Brand.Category").
 		Preload("Buildings").
 		Preload("SpecTransformer").
 		Preload("SpecGenerator").
@@ -42,7 +42,7 @@ func (h *AssetHandler) GetAssets(c *gin.Context) {
 		Preload("SpecPaddleWheel").
 		Preload("Buildings").
 		Preload("Category").
-		Preload("Brand").
+		Preload("Brand.Category").
 		Find(&assets).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Failed to fetch assets"})
 		return
@@ -63,7 +63,7 @@ func (h *AssetHandler) GetAsset(c *gin.Context) {
 		Preload("SpecPaddleWheel").
 		Preload("Buildings").
 		Preload("Category").
-		Preload("Brand").
+		Preload("Brand.Category").
 		First(&asset, "id = ?", assetID).Error; err != nil {
 		c.JSON(404, gin.H{"error": "Asset not found"})
 		return

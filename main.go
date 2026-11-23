@@ -29,7 +29,9 @@ type Brand struct {
 type ServiceRecord struct {
 	ID          uint           `gorm:"primaryKey" json:"id"`
 	AssetID     uint           `gorm:"not null" json:"assetId"`
+	RecordType  string         `gorm:"size:10;not null;default:'OM';index" json:"recordType"`
 	ServiceDate time.Time      `json:"serviceDate,omitempty"`
+	EndDate     *time.Time     `json:"endDate,omitempty"`
 	Details     string         `gorm:"type:text" json:"details"`
 	CreatedAt   time.Time      `json:"createdAt"`
 	UpdatedAt   time.Time      `json:"updatedAt"`
@@ -225,6 +227,7 @@ func main() {
 	serviceRecordGroup := router.Group("/" + version + "/serviceRecord")
 	{
 		serviceRecordGroup.GET("/", serviceRecordHandler.GetServiceRecords)
+		serviceRecordGroup.POST("/repeat", serviceRecordHandler.CreateRepeatedServiceRecords)
 		serviceRecordGroup.GET("/:id", serviceRecordHandler.GetServiceRecord)
 		serviceRecordGroup.POST("/", serviceRecordHandler.CreateServiceRecord)
 		serviceRecordGroup.PUT("/:id", serviceRecordHandler.UpdateServiceRecord)

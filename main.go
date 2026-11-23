@@ -38,6 +38,19 @@ type ServiceRecord struct {
 	DeletedAt   gorm.DeletedAt `gorm:"index" json:"-"`
 }
 
+type WorkOrder struct {
+	ID            uint      `gorm:"primaryKey;autoIncrement" json:"id"`
+	Title         string    `gorm:"size:255;not null" json:"title"`
+	Asset         string    `gorm:"size:255;not null" json:"asset"`
+	Priority      string    `gorm:"size:20;not null;default:'Medium'" json:"priority"`
+	Assignee      string    `gorm:"size:255;not null;default:'Unassigned'" json:"assignee"`
+	Status        string    `gorm:"size:30;not null;default:'Open';index" json:"status"`
+	ScheduledDate string    `gorm:"type:date;not null;index" json:"scheduledDate"`
+	Time          string    `gorm:"size:5;not null" json:"time"`
+	CreatedAt     time.Time `gorm:"autoCreateTime" json:"createdAt"`
+	UpdatedAt     time.Time `gorm:"autoUpdateTime" json:"updatedAt"`
+}
+
 type Building struct {
 	ID        uint      `gorm:"primaryKey;autoIncrement" json:"id"`
 	Code      string    `gorm:"size:20;column:code" json:"code"`
@@ -187,6 +200,7 @@ func main() {
 	} else {
 		if err = db.AutoMigrate(
 			&ServiceRecord{},
+			&WorkOrder{},
 			&Category{},
 			&Brand{},
 			&Building{},
@@ -232,6 +246,14 @@ func main() {
 		serviceRecordGroup.POST("/", serviceRecordHandler.CreateServiceRecord)
 		serviceRecordGroup.PUT("/:id", serviceRecordHandler.UpdateServiceRecord)
 		//		serviceRecordGroup.DELETE("/:id", serviceRecordHandler.DeleteServiceRecord)
+	}
+
+	workOrderHandler := &WorkOrderHandler{DB: db}
+	workOrderGroup := router.Group("/" + version + "/workOrder")
+	{
+		workOrderGroup.GET("/", workOrderHandler.GetWorkOrders)
+		workOrderGroup.POST("/", workOrderHandler.CreateWorkOrder)
+		workOrderGroup.PUT("/:id", workOrderHandler.UpdateWorkOrder)
 	}
 
 	categoryHandler := &CategoryHandler{DB: db}

@@ -51,6 +51,13 @@ func (h *ServiceRecordHandler) CreateServiceRecord(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+	if serviceRecord.AssetID == 0 || serviceRecord.ServiceDate.IsZero() || serviceRecord.Details == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "assetId, serviceDate and details are required"})
+		return
+	}
+	if serviceRecord.RecordType == "" {
+		serviceRecord.RecordType = "OM"
+	}
 	if serviceRecord.EndDate != nil && !serviceRecord.EndDate.After(serviceRecord.ServiceDate) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "endDate must be after serviceDate"})
 		return
@@ -70,8 +77,12 @@ func (h *ServiceRecordHandler) CreateRepeatedServiceRecords(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if request.AssetID == 0 || request.Details == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "assetId and details are required"})
+	if request.AssetID == 0 || request.ServiceDate.IsZero() || request.Details == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "assetId, serviceDate and details are required"})
+		return
+	}
+	if request.RecordType != "PM" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Repeated service records support PM only"})
 		return
 	}
 	if request.RepeatCount < 1 || request.RepeatCount > 366 {
